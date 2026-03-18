@@ -3,164 +3,205 @@ title: Configuration
 id: configuration
 ---
 
-Both TanStack `DevTools` and `EventClient` can be configured.
+TanStack Devtools configuration is split between `TanStackDevtools` and `EventClient`. `TanStackDevtools` uses two separate config objects: `config` controls shell UI behavior, and `eventBusConfig` controls event transport settings.
 
-> [!IMPORTANT] 
-> All configuration is optional unless marked (required)
+> [!IMPORTANT]
+> All options are optional unless marked as required.
 
-## Devtools Component Configuration
+## Configuration model
 
-The `Devtools` component has two configuration props, regardless of Frameworks these are the same.
+Configuration usually starts with shell behavior (`config`) and then adds transport settings (`eventBusConfig`) when server bus features are enabled.
 
-- `config` - Configuration for the devtool panel and interaction with it.
-- `eventBusConfig` - Configuration for the event bus.
+- `config`: trigger behavior, panel behavior, hotkeys, and theme.
+- `eventBusConfig`: client connection settings for the server event bus.
 
-The `config` object is mainly focused around user interaction with the devtools panel and accepts the following properties:
+The separation is intentional. UI behavior and network behavior are configured independently.
 
-- `defaultOpen` - If the devtools are open by default
+## `config` options
+
+- `defaultOpen`: Sets the initial panel state to open instead of closed.
 
 ```ts
 { defaultOpen: boolean }
 ```
 
-- `hideUntilHover` - Hides the TanStack devtools trigger until hovered
+- `hideUntilHover`: Keeps the trigger hidden until the pointer reaches its hover region.
 
 ```ts
 { hideUntilHover: boolean }
 ```
 
-- `position` - The position of the TanStack devtools trigger
+- `position`: Controls which screen edge or corner the floating trigger is anchored to.
 
 ```ts
-{ position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'middle-left' | 'middle-right' }
+{
+  position:
+    | 'top-left'
+    | 'top-right'
+    | 'bottom-left'
+    | 'bottom-right'
+    | 'middle-left'
+    | 'middle-right'
+}
 ```
 
-- `panelLocation` - The location of the devtools panel
+- `panelLocation`: Controls whether the panel opens from the top edge or bottom edge.
 
 ```ts
 { panelLocation: 'top' | 'bottom' }
 ```
 
-- `openHotkey` - The hotkey set to open the devtools
+- `openHotkey`: Defines the key combination that opens and closes the panel.
 
 ```ts
-type ModifierKey = 'Alt' | 'Control' | 'Meta' | 'Shift' | 'CtrlOrMeta';
-type KeyboardKey = ModifierKey | (string & {});
+type ModifierKey = 'Alt' | 'Control' | 'Meta' | 'Shift' | 'CtrlOrMeta'
+type KeyboardKey = ModifierKey | (string & {})
 
 { openHotkey: Array<KeyboardKey> }
 ```
 
-- `inspectHotkey` - The hotkey set to open the source inspector
+- `inspectHotkey`: Defines the key combination that turns source inspection on and off.
 
 ```ts
-type ModifierKey = 'Alt' | 'Control' | 'Meta' | 'Shift' | 'CtrlOrMeta';
-type KeyboardKey = ModifierKey | (string & {});
+type ModifierKey = 'Alt' | 'Control' | 'Meta' | 'Shift' | 'CtrlOrMeta'
+type KeyboardKey = ModifierKey | (string & {})
 
 { inspectHotkey: Array<KeyboardKey> }
 ```
 
-- `requireUrlFlag` - Requires a flag present in the url to enable devtools
+- `requireUrlFlag`: Requires a matching query parameter before Devtools is rendered.
 
 ```ts
 { requireUrlFlag: boolean }
 ```
 
-- `triggerImage` - The image used for the dev tools trigger
-
-```ts
-{ triggerImage: string }
-```
-
-- `urlFlag` - The required flag that must be present in the url to enable devtools.
+- `urlFlag`: Sets the query parameter name checked when `requireUrlFlag` is enabled.
 
 ```ts
 { urlFlag: string }
 ```
 
-The `eventBusConfig` is configuration for the back bone of the devtools, the `EventClient`, and accepts the following properties:
-
-- `debug` - Enables debug mode for the EventBus
+- `theme`: Forces the shell theme to `light` or `dark`.
 
 ```ts
-{ debug: boolean }
+{ theme: 'light' | 'dark' }
 ```
 
-- `connectToServerBus` - Optional flag to indicate if the devtools server event bus is available to connect to
+- `triggerHidden`: Removes the floating trigger button from the UI.
 
 ```ts
-{ connectToServerBus: boolean }
+{ triggerHidden?: boolean }
 ```
 
-- `port` - The port at which the client connects to the devtools server event bus
+- `customTrigger`: Replaces the default trigger by rendering custom trigger UI into the provided element.
 
 ```ts
-{ port: number }
+{ customTrigger?: (el: HTMLElement, props: { theme: 'light' | 'dark' }) => void }
 ```
 
-Put together here is an example in react:
+## `eventBusConfig` options
 
-```tsx
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { FormDevtools } from '@tanstack/react-form'
+- `connectToServerBus`: Connects the client event bus to the Vite server event bus.
 
-import { TanStackDevtools } from '@tanstack/react-devtools'
-
-import App from './App'
-
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-
-    <TanStackDevtools
-      config={{ hideUntilHover: true }}
-      eventBusConfig={{ debug: true }}
-      plugins={[
-        {
-          name: 'TanStack Form',
-          render: <FormDevtools />,
-          defaultOpen: true,
-        },
-      ]}
-    />
-  </StrictMode>,
-)
-
+```ts
+{ connectToServerBus?: boolean }
 ```
 
-## EventClient Configuration
+- `debug`: Enables diagnostic logging for client-to-server event transport.
 
-Configuration for the `EventClient` is as follows
+```ts
+{ debug?: boolean }
+```
 
-- `pluginId` (required) - The plugin identifier used by the event bus to direct events to listeners
+- `port`: Sets the server bus port used for the transport connection.
+
+```ts
+{ port?: number }
+```
+
+- `host`: Sets the server bus host used for the transport connection.
+
+```ts
+{ host?: string }
+```
+
+- `protocol`: Sets the transport protocol used to connect (`http` or `https`).
+
+```ts
+{ protocol?: 'http' | 'https' }
+```
+
+## Configuration object example
+
+Example values for both `config` and `eventBusConfig`:
+
+```ts
+const devtoolsConfig = {
+  config: {
+    hideUntilHover: true,
+    position: 'bottom-right' as const,
+    panelLocation: 'bottom' as const,
+    openHotkey: ['Control', '~'] as const,
+  },
+  eventBusConfig: {
+    connectToServerBus: true,
+    host: 'localhost',
+    port: 4206,
+    protocol: 'http' as const,
+    debug: false,
+  },
+}
+```
+
+For framework-specific mounting, see [Quick Start](./quick-start).
+
+## `EventClient` configuration
+
+Use `EventClient` when building custom plugins that emit or subscribe to devtools events.
+
+- `pluginId` (required): Sets the plugin namespace prefix used for emitted events.
 
 ```ts
 { pluginId: string }
 ```
 
-- `debug` - Enables debug mode for the EventClient
+- `debug`: Enables diagnostic logging for `EventClient` emit and subscribe activity.
 
 ```ts
-{ debug: boolean }
+{ debug?: boolean }
 ```
 
-Put together the `EventClient` configuration looks like:
+- `enabled`: Turns `EventClient` event emit/subscribe behavior on or off.
 
-```tsx
+```ts
+{ enabled?: boolean }
+```
+
+- `reconnectEveryMs`: Sets how often `EventClient` retries server bus connection attempts.
+
+```ts
+{ reconnectEveryMs?: number }
+```
+
+```ts
 import { EventClient } from '@tanstack/devtools-event-client'
 
 type EventMap = {
   'custom-state': { state: string }
 }
 
-class customEventClient extends EventClient<EventMap> {
+class CustomEventClient extends EventClient<EventMap> {
   constructor() {
     super({
-      debug: true,
       pluginId: 'custom-devtools',
+      debug: true,
+      enabled: true,
+      reconnectEveryMs: 300,
     })
   }
 }
+
+export const customEventClient = new CustomEventClient()
 ```
 
-More information about EventClient configuration can be found in our [custom-plugins example](https://tanstack.com/devtools/latest/docs/framework/react/examples/custom-devtools)
+For a complete plugin implementation, see [Custom Plugins](./custom-plugins).

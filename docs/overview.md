@@ -3,30 +3,30 @@ title: Overview
 id: overview
 ---
 
-TanStack Devtools is a framework-agnostic devtool for managing and debugging *your devtools*.
-
-We offer you all the tools you need to build and maintain your own devtools with ease.
-
-We will continue to improve and expand the capabilities of TanStack Devtools, so you can focus on building great applications while we take care of the heavy lifting. We offer you an easy way
-to add your own custom devtools and merge multiple instances of TanStack Devtools into a single cohesive experience.
+TanStack Devtools is a unified panel that runs multiple devtools plugins inside a single draggable shell. It supports first-party panels (Query, Router, Form) and custom plugins in the same UI, and includes the plugin system, event bus, and Vite integration needed to run them together.
 
 > [!IMPORTANT]
 > TanStack Devtools is currently in **alpha** and its API is subject to change.
 
-## Origin
+## Why it exists
 
-Have you ever wanted to build your own devtools? Then you start work on them, and you realize how complex and time-consuming it can be. First of all, you have to deal with the dreaded z-indexes!
-Create the trigger, make sure you can move it, style the panel, handle the interactions, make sure
-it's not getting in the way... The list keeps going on, and you're just trying to build your
-next feature in half the time!
+Building devtools UI from scratch requires trigger placement, panel state, drag behavior, z-index management, hotkeys, and plugin coordination. TanStack Devtools provides a shared shell for those responsibilities.
 
+## Package layers
 
-Well, that's where TanStack Devtools comes in. We provide a solid foundation for building your own devtools, so you can focus on what matters most: your application. We provide everything you need
-out of the box and all you have to do is plug the simple custom devtool panel into your app!
+TanStack Devtools is composed of several packages organized into layers. Install the packages that match your use case.
 
-## What's in the Box
+### Package selection
 
-TanStack Devtools is composed of several packages organized into layers. You only need to install the ones relevant to your use case.
+- Building an app with existing panels: install one framework adapter and `@tanstack/devtools-vite`.
+- Building custom plugins or lower-level integrations: add `@tanstack/devtools-event-client`, `@tanstack/devtools-event-bus`, and `@tanstack/devtools-utils` as needed.
+
+<!-- ::start:tabs variant="package-manager" mode="install" -->
+react: @tanstack/react-devtools @tanstack/devtools-vite
+vue: @tanstack/vue-devtools @tanstack/devtools-vite
+solid: @tanstack/solid-devtools @tanstack/devtools-vite
+preact: @tanstack/preact-devtools @tanstack/devtools-vite
+<!-- ::end:tabs -->
 
 ### Framework Adapters
 
@@ -35,7 +35,7 @@ TanStack Devtools is composed of several packages organized into layers. You onl
 - `@tanstack/solid-devtools`
 - `@tanstack/preact-devtools`
 
-Thin wrappers that integrate the devtools into your framework of choice. Pick the one that matches your app and you're good to go.
+Thin wrappers that mount the devtools shell in your framework.
 
 ### Core
 
@@ -58,7 +58,7 @@ Thin wrappers that integrate the devtools into your framework of choice. Pick th
 
 ## Architecture
 
-The diagram below shows how the layers connect at a high level:
+The diagram below shows how the layers connect:
 
 ```mermaid
 graph TD
@@ -79,17 +79,23 @@ graph TD
     shell --> events
 ```
 
-Your application loads a **Framework Adapter**, which mounts the **Core Shell**. The shell manages the plugin lifecycle, renders tabs, and surfaces settings. Plugins communicate through the **Event System**, which provides typed events locally and can bridge to a server over WebSocket or SSE when needed.
+This diagram is Mermaid source in the page, not a static image or SVG.
 
-## Key Features
+Three layers matter in practice:
 
-- **Framework Agnostic**: Works with React, Vue, Solid, and Preact out of the box.
-- **Plugin System & Marketplace**: Build, share, and install devtools plugins with a simple API.
-- **Type-Safe Event System**: Communicate between plugins and the shell using fully typed events.
-- **Source Inspector**: Click any element in your app to jump straight to its source code (go-to-source).
-- **Console Piping**: Route devtools output to your browser console for a familiar debugging workflow.
-- **Picture-in-Picture Mode**: Pop the devtools panel out into its own window so it never covers your app.
-- **Customizable Hotkeys**: Rebind keyboard shortcuts to match your workflow.
+- Framework adapter: apps mount one adapter package (`@tanstack/react-devtools`, `@tanstack/vue-devtools`, `@tanstack/solid-devtools`, or `@tanstack/preact-devtools`).
+- Core shell (`@tanstack/devtools`): renders the trigger, panel, tabs, plugin containers, and settings.
+- Event system (`@tanstack/devtools-event-client` and `@tanstack/devtools-event-bus`): handles typed plugin events and optional server transport over WebSocket/SSE.
+
+## Capabilities
+
+- **Framework agnostic**: React, Vue, Solid, and Preact adapters.
+- **Plugin system & marketplace**: Build, share, and install devtools plugins with a simple API.
+- **Typed events**: Communicate between plugins and the shell using fully typed events.
+- **Source inspector**: Element-to-source navigation in development.
+- **Console piping**: Browser and terminal log piping through the Vite plugin.
+- **Picture-in-picture**: Panel rendering in a separate window.
+- **Customizable hotkeys**: Configurable open and inspect shortcuts.
 
 ## Next Steps
 
